@@ -1,4 +1,7 @@
 #include <FastLED.h>
+#include "EEPROM.h"
+#define buttonPin 6                                           // input pin to use as a digital input
+#include "jsbutton.h"                                         // Nice button routine by Jeff Saltzman
 
 FASTLED_USING_NAMESPACE
 
@@ -12,7 +15,7 @@ int eepaddress = 0;                                           // Store the start
 #define qsuba(x, b)  ((x>b)?x-b:0)                            // Analog Unsigned subtraction macro. if result <0, then => 0
 
 #define DATA_PIN    5
-#define potPin   12
+#define potPin   A9
 #define LED_TYPE    WS2812
 #define COLOR_ORDER GRB
 #define NUM_LEDS    93
@@ -31,7 +34,7 @@ unsigned int dimmer = 1;
 
 uint8_t ledstart;                                             // Starting location of a flash
 uint8_t ledlen;                                               // Length of a flash
-
+//uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 
 #define BRIGHTNESS       100
 #define FRAMES_PER_SECOND  120
@@ -55,6 +58,7 @@ bool        huerot =   0;                                     // Does the hue ro
 uint8_t      bgclr =   0;
 uint8_t      bgbri =   0;
 uint8_t bpm = 30;
+uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 
 void setup() {
   delay(3000); // 3 second delay for recovery
@@ -67,15 +71,22 @@ void setup() {
   FastLED.addLeds<LED_TYPE,7,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.addLeds<LED_TYPE,8,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
 
+  pinMode(buttonPin, INPUT);                                  // Set button input pin
+digitalWrite(buttonPin, HIGH );
+
   // set master brightness control
   FastLED.setBrightness(BRIGHTNESS);
+
+gCurrentPatternNumber = EEPROM.read(eepaddress);
+
+   if (gCurrentPatternNumber > maxMode) gCurrentPatternNumber = 0; // A safety in case the EEPROM has an illegal value.
+   
 }
 
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 SimplePatternList gPatterns = {  ChangeMe, lightning, blur,fill_grad, blendwave, beatwave,fadein,dot_beat,rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm2 };
-uint8_t gCurrentPatternNumber = 0; // 14 Index number of which pattern is current
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
 void setBrightness(){
@@ -91,7 +102,8 @@ void loop()
 {
   // Call the current patt\ern function once, updating the 'leds' array
   gPatterns[gCurrentPatternNumber]();
-
+  readbutton();
+  
   // send the 'leds' array out to the actual LED strip
   FastLED.show();  
   // insert a delay to keep the framerate modest
@@ -121,10 +133,35 @@ if(gCurrentPatternNumber==0){
 
   // do some periodic updates
   EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
-  EVERY_N_SECONDS( 10 ) { nextPattern(); } // change patterns periodically
+  //EVERY_N_SECONDS( 10 ) { nextPattern(); } // change patterns periodically
 }
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
+
+
+void readbutton() {                                           // Read the button and increase the mode
+
+  uint8_t b = checkButton();
+
+  if (b == 1) {                                               // Just a click event to advance to next pattern
+    gCurrentPatternNumber = (gCurrentPatternNumber + 1) % ARRAY_SIZE(gPatterns);
+    Serial.println(gCurrentPatternNumber);
+  }
+
+  if (b == 2) {                                               // A double-click event to reset to 0 pattern
+    gCurrentPatternNumber = 0;
+    Serial.println(gCurrentPatternNumber);
+  }
+
+  if (b == 3) {                                               // A hold event to write current pattern to EEPROM
+    EEPROM.write(eepaddress,gCurrentPatternNumber);
+    Serial.print("Writing: ");
+    Serial.println(gCurrentPatternNumber);    
+  }
+
+} // readbutton()
+
+
 
 void nextPattern()
 {
