@@ -1,6 +1,6 @@
 #include <FastLED.h>
 #include "EEPROM.h"
-#define buttonPin 6                                           // input pin to use as a digital input
+#define buttonPin 22                                           // input pin to use as a digital input
 #include "jsbutton.h"                                         // Nice button routine by Jeff Saltzman
 
 FASTLED_USING_NAMESPACE
@@ -86,7 +86,7 @@ gCurrentPatternNumber = EEPROM.read(eepaddress);
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = {  ChangeMe, lightning, blur,fill_grad, blendwave, beatwave,fadein,dot_beat,rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm2 };
+SimplePatternList gPatterns = {  ChangeMe, blur,fill_grad, blendwave, beatwave,fadein,dot_beat,rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm2 };
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
 void setBrightness(){
@@ -213,9 +213,6 @@ void matrix() {                                               // One line matrix
 } // matrix()
 
 
-
-// Also RainbowColors_p, RainbowStripeColors_p, OceanColors_p, CloudColors_p, LavaColors_p, ForestColors_p, and PartyColors_p.
-
 void ChangeMe() {                                             // A time (rather than loop) based demo sequencer. This gives us full control over the length of each sequence.
   
   uint8_t secondHand = (millis() / 1000) % 25;                // Change '25' to a different value to change length of the loop.
@@ -234,6 +231,7 @@ void ChangeMe() {                                             // A time (rather 
   }
 
 } // ChangeMe()
+
 void confetti() 
 {
   // random colored speckles that blink in and fade smoothly
@@ -284,9 +282,6 @@ void fadein() {
 
 }// fadein()
 
-
-
-
 void ease() {
 
   static uint8_t easeOutVal = 0;
@@ -303,7 +298,6 @@ void ease() {
   
 } // ease()
 
-
 void beatwave() {
   
   uint8_t wave1 = beatsin8(9, 0, 255);                        // That's the same as beatsin8(9);
@@ -316,6 +310,7 @@ void beatwave() {
   }
   
 } // beatwave()
+
 void dot_beat() {
 
   uint8_t inner = beatsin8(bpm, NUM_LEDS/4, NUM_LEDS/4*3);    // Move 1/4 to 3/4
@@ -330,7 +325,6 @@ void dot_beat() {
 
 } // dot_beat()
 
-
 void blendwave() {
 
   speed = beatsin8(6,0,255);
@@ -344,40 +338,11 @@ void blendwave() {
   fill_gradient_RGB(leds, loc1, clr2, NUM_LEDS-1, clr1);
 
 } // blendwave()
+
 void black(){
-
   fill_solid(leds, NUM_LEDS, CRGB::Black);                    // Just to be sure, let's really make it BLACK.
-  FastLED.show();                         // Power managed display
-  
-  
+  FastLED.show();                         // Power managed display  
 }
-
-
-
-void lightning() {
-  
-  ledstart = random8(NUM_LEDS);                               // Determine starting location of flash
-  ledlen = random8(NUM_LEDS-ledstart);                        // Determine length of flash (not to go beyond NUM_LEDS-1)
-  
-  for (int flashCounter = 0; flashCounter < random8(3,flashes); flashCounter++) {
-    if(flashCounter == 0) dimmer = 5;                         // the brightness of the leader is scaled down by a factor of 5
-    else dimmer = random8(1,3);                               // return strokes are brighter than the leader
-    
-    fill_solid(leds+ledstart,ledlen,CHSV(255, 0, 255/dimmer));
-    FastLED.show();                       // Show a section of LED's
-    delay(random8(4,10));                                     // each flash only lasts 4-10 milliseconds
-    fill_solid(leds+ledstart,ledlen,CHSV(255,0,0));           // Clear the section of LED's
-    FastLED.show();
-    
-    if (flashCounter == 0) delay (150);                       // longer delay until next flash after the leader
-    
-    delay(50+random8(100));                                   // shorter delay between strokes  
-  } // for()
-  
-  delay(random8(frequency)*100);                              // delay between strikes
-  
-} // loop()
-
 
 void blur() {
 
@@ -399,8 +364,6 @@ void blur() {
   
 } // blur()
  
-
-
 void fill_grad() {
   
   uint8_t starthue = beatsin8(5, 0, 255);
