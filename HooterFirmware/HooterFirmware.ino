@@ -13,7 +13,7 @@ uint8_t maxMode = 10;
 #define qsuba(x, b)  ((x>b)?x-b:0)                            // Analog Unsigned subtraction macro. if result <0, then => 0
 
 #define DATA_PIN    5
-#define potPin   A0
+//#define potPin   A9
 #define LED_TYPE    WS2812
 #define COLOR_ORDER GRB
 #define NUM_LEDS    269
@@ -33,8 +33,8 @@ unsigned int dimmer = 1;
 uint8_t ledstart;                                             // Starting location of a flash
 uint8_t ledlen;                                               // Length of a flash
 
-#define BRIGHTNESS       90
-#define FRAMES_PER_SECOND  220
+#define BRIGHTNESS       255
+#define FRAMES_PER_SECOND  120
 
 // Palette definitions
 CRGBPalette16 currentPalette = PartyColors_p;
@@ -58,19 +58,18 @@ uint8_t bpm = 30;
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 
 void setup() {
-  delay(1000); // 1 second delay for recovery
+  delay(1000); // 3 second delay for recovery
     Serial.begin(115200);                                        // Initialize serial port for debugging.
   delay(1000);                                                // Soft startup to ease the flow of electrons.
 
   // tell FastLED about the LED strip configuration
-  FastLED.addLeds<LED_TYPE,5,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-  FastLED.addLeds<LED_TYPE,6,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-  FastLED.addLeds<LED_TYPE,7,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-  FastLED.addLeds<LED_TYPE,8,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);//trex back
-  FastLED.addLeds<LED_TYPE,9,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);//trex left rear
+  //FastLED.addLeds<LED_TYPE,4,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE,3,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  //FastLED.addLeds<LED_TYPE,7,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  //FastLED.addLeds<LED_TYPE,9,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
 
   pinMode(buttonPin, INPUT);                                  // Set button input pin
-  digitalWrite(buttonPin, HIGH );
+digitalWrite(buttonPin, HIGH );
 
   // set master brightness control
   FastLED.setBrightness(BRIGHTNESS);
@@ -86,10 +85,11 @@ SimplePatternList gPatterns = {  matrix, fill_grad, blendwave, beatwave,fadein,r
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
 void setBrightness(){
-  int val = analogRead(potPin);
-  val = map(val, 0, 1023, 10, 200);
-  FastLED.setBrightness(val);
-  Serial.println(val);
+//  int val = analogRead(potPin);
+ // val = map(val, 0, 1023, 10, 200);
+ // analogWrite(9, val);
+  //FastLED.setBrightness(val);
+  //Serial.println(val);
 
 }
 
