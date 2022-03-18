@@ -16,7 +16,7 @@ uint8_t maxMode = 10;
 //#define potPin   A9
 #define LED_TYPE    WS2812
 #define COLOR_ORDER GRB
-#define NUM_LEDS    269
+#define NUM_LEDS    74
 CRGB leds[NUM_LEDS];
 CRGB clr1;
 CRGB clr2;
@@ -33,7 +33,7 @@ unsigned int dimmer = 1;
 uint8_t ledstart;                                             // Starting location of a flash
 uint8_t ledlen;                                               // Length of a flash
 
-#define BRIGHTNESS       255
+#define BRIGHTNESS       150
 #define FRAMES_PER_SECOND  120
 
 // Palette definitions
@@ -81,7 +81,7 @@ gCurrentPatternNumber = 0;
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = {  matrix, fill_grad, blendwave, beatwave,fadein,rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm2 };
+SimplePatternList gPatterns = { rainbowWithGlitter, matrix, fill_grad, blendwave, beatwave,fadein,rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm2 };
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
 void setBrightness(){
