@@ -16,7 +16,7 @@ uint8_t maxMode = 10;
 //#define potPin   A9
 #define LED_TYPE    WS2812
 #define COLOR_ORDER GRB
-#define NUM_LEDS    74
+#define NUM_LEDS    140
 CRGB leds[NUM_LEDS];
 CRGB clr1;
 CRGB clr2;
@@ -64,7 +64,7 @@ void setup() {
 
   // tell FastLED about the LED strip configuration
   //FastLED.addLeds<LED_TYPE,4,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-  FastLED.addLeds<LED_TYPE,3,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE,5,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   //FastLED.addLeds<LED_TYPE,7,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   //FastLED.addLeds<LED_TYPE,9,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
 
@@ -81,7 +81,7 @@ gCurrentPatternNumber = 0;
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = { rainbowWithGlitter, matrix, fill_grad, blendwave, beatwave,fadein,rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm2 };
+SimplePatternList gPatterns = { matrix,rainbowWithGlitter, fill_grad, blendwave, beatwave,fadein,rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm2 };
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
 void setBrightness(){
