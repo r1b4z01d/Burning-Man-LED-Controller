@@ -7,13 +7,6 @@
 #include <Adafruit_SSD1306.h>
 
 FASTLED_USING_NAMESPACE
-// Define the device type
-// Pole = 1
-// Bike = 2
-// Hootie Wing = 3
-// Hootie Front = 41218 
-// Hootie Side = 5
-#define DEVICE_TYPE 1       //1 pole 
 
 #define BAT_PIN     A1
 #define DATA_PIN    3
@@ -37,7 +30,7 @@ unsigned int dimmer = 1;
 uint8_t ledstart;                                             // Starting location of a flash
 uint8_t ledlen;                                               // Length of a flash
 
-#define BRIGHTNESS       255
+#define BRIGHTNESS       100
 #define FRAMES_PER_SECOND  120
 
 // Palette definitions
