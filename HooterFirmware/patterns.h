@@ -1,26 +1,27 @@
+// Initialize global variables for sequences.
+uint8_t    palIndex =  95;
+uint8_t    thissat = 255;
+int        thisdir =   0;
+uint8_t thisbright = 255;
+bool        huerot =   0;                                     // Does the hue rotate? 1 = yes
+uint8_t      bgclr =   0;
+uint8_t      bgbri =   0;
+uint8_t bpm = 30;
+uint8_t fadeval = 224;                                        // Trail behind the LED's. Lower => faster fade.
+CRGB leds[NUM_LEDS];
+CRGB clr1;
+CRGB clr2;
+uint8_t speed;
+uint8_t loc1;
 
-void rainbow() 
-{
-  // FastLED's built-in rainbow generator
-  fill_rainbow( leds, NUM_LEDS, gHue, 7);
-}
 
-void rainbowWithGlitter() 
-{
-  // built-in FastLED rainbow, plus some random sparkly glitter
-  rainbow();
-  addGlitter(80);
-}
+// Palette definitions
+CRGBPalette16 currentPalette = PartyColors_p;
+TBlendType    currentBlending = LINEARBLEND; 
+CRGBPalette16 targetPalette;
+uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
-void addGlitter( fract8 chanceOfGlitter) 
-{
-  if( random8() < chanceOfGlitter) {
-    leds[ random16(NUM_LEDS) ] += CRGB::White;
-  }
-}
 void matrix() {                                               // One line matrix
-
-  if (huerot) palIndex++;
   
   if (random8(90) > 80) {
     if (thisdir == 0)
@@ -42,25 +43,25 @@ void matrix() {                                               // One line matrix
   
 } // matrix()
 
+void rainbow() 
+{
+  // FastLED's built-in rainbow generator
+  fill_rainbow( leds, NUM_LEDS, gHue, 7);
+}
 
-void ChangeMe() {                                             // A time (rather than loop) based demo sequencer. This gives us full control over the length of each sequence.
-  
-  uint8_t secondHand = (millis() / 1000) % 25;                // Change '25' to a different value to change length of the loop.
-  static uint8_t lastSecond = 99;                             // Static variable, means it's only defined once. This is our 'debounce' variable.
-
-  if (lastSecond != secondHand) {                             // Debounce to make sure we're not repeating an assignment.
-    lastSecond = secondHand;
-    switch(secondHand) {
-      case  0: thisdelay=50; palIndex=95; bgclr=140; bgbri=4; huerot=0; break;
-      case  5: targetPalette = OceanColors_p; thisdir=1; bgbri=0; huerot=1; break;
-      case 10: targetPalette = LavaColors_p; thisdelay=30; palIndex=0; bgclr=50; bgbri=8; huerot=0; break;
-      case 15: targetPalette = ForestColors_p; thisdelay=80; bgbri = 16; bgclr=96; palIndex=random8(); break;
-      case 20: palIndex=random8(); huerot=1; break;
-      case 25: break;
-    }
+void addGlitter( fract8 chanceOfGlitter) 
+{
+  if( random8() < chanceOfGlitter) {
+    leds[ random16(NUM_LEDS) ] += CRGB::White;
   }
+}
 
-} // ChangeMe()
+void rainbowWithGlitter() 
+{
+  // built-in FastLED rainbow, plus some random sparkly glitter
+  rainbow();
+  addGlitter(80);
+}
 
 void confetti() 
 {
@@ -170,8 +171,8 @@ void blendwave() {
 } // blendwave()
 
 void black(){
-  fill_solid(leds, NUM_LEDS, CRGB::Black);                    // Just to be sure, let's really make it BLACK.
-  FastLED.show();                         // Power managed display  
+  fill_solid(leds, NUM_LEDS, CRGB::Black);                    
+  FastLED.show();
 }
 
 void blur() {

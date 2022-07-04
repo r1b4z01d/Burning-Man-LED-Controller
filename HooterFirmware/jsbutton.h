@@ -42,7 +42,7 @@ boolean holdEventPast = false;    // whether or not the hold event happened alre
 
 uint8_t checkButton() {    
    uint8_t event = 0;
-   buttonVal = digitalRead(buttonPin);
+   buttonVal = digitalRead(BUTTON_PIN);
    // Button pressed down
    if (buttonVal == LOW && buttonLast == HIGH && (millis() - upTime) > debounce)
    {
