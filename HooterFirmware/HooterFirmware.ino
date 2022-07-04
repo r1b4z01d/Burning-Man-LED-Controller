@@ -7,47 +7,38 @@
 #include <Adafruit_SSD1306.h>
 
 FASTLED_USING_NAMESPACE
+
 // Define the device type
-// Pole = 1
+// Tent = 1
 // Bike = 2
 // Hootie Wing = 3
 // Hootie Front = 41218 
 // Hootie Side = 5
-#define DEVICE_TYPE 1       //1 pole 
+#define DEVICE_TYPE 1     
+
+
 
 #define BAT_PIN     A1
 #define DATA_PIN    3
-
 #define LED_TYPE    WS2812
 #define COLOR_ORDER GRB
 #define NUM_LEDS    1200
+
+
+#define BRIGHTNESS       255
+#define FRAMES_PER_SECOND  120
+
 CRGB leds[NUM_LEDS];
 CRGB clr1;
 CRGB clr2;
 uint8_t speed;
 uint8_t loc1;
-uint8_t loc2;
-uint8_t ran1;
-uint8_t ran2;
-
-uint8_t frequency = 50;                                       // controls the interval between strikes
-uint8_t flashes = 8;                                          //the upper limit of flashes per strike
-unsigned int dimmer = 1;
-
-uint8_t ledstart;                                             // Starting location of a flash
-uint8_t ledlen;                                               // Length of a flash
-
-#define BRIGHTNESS       255
-#define FRAMES_PER_SECOND  120
 
 // Palette definitions
 CRGBPalette16 currentPalette = PartyColors_p;
-CRGBPalette16 targetPalette;
 TBlendType    currentBlending = LINEARBLEND; 
 
 // Define variables used by the sequences.
-int   thisdelay =   10;                                       // A delay value for the sequence(s)
-uint8_t   count =   0;                                        // Count up to 255 and then reverts to 0
 uint8_t fadeval = 224;                                        // Trail behind the LED's. Lower => faster fade.
 
 // Initialize global variables for sequences.
@@ -61,6 +52,8 @@ uint8_t      bgbri =   0;
 uint8_t bpm = 30;
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 
+
+/////Screen definitions
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
@@ -261,14 +254,13 @@ void loop()
     uint8_t baseC = random8(255);                                             // Use the built-in random number generator as we are re-initializing the FastLED one.
     targetPalette = CRGBPalette16(CHSV(baseC+random8(0,32), 255, random8(128, 255)), CHSV(baseC+random8(0,32), 255, random8(128, 255)), CHSV(baseC+random8(0,32), 192, random8(128, 255)), CHSV(baseC+random8(0,32), 255, random8(128, 255)));
     }
- // EVERY_N_SECONDS(10) {                                                        // Change the target palette to a random one every 5 seconds.
-// updateDisplay(gCurrentPatternNumber);
+ // EVERY_N_SECONDS(120) {                                                        // Change the target palette to a random one every 5 seconds.
+ // updateDisplay(gCurrentPatternNumber);
  // }
   // do some periodic updates
   EVERY_N_MILLISECONDS( 20 ) { 
     gHue++;
   } // slowly cycle the "base color" through the rainbow
-
 }
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
@@ -290,8 +282,6 @@ void readbutton() {                                           // Read the button
   }
 
 } // readbutton()
-
-
 
 void nextPattern()
 {
@@ -342,26 +332,6 @@ void matrix() {                                               // One line matrix
   }
   
 } // matrix()
-
-
-void ChangeMe() {                                             // A time (rather than loop) based demo sequencer. This gives us full control over the length of each sequence.
-  
-  uint8_t secondHand = (millis() / 1000) % 25;                // Change '25' to a different value to change length of the loop.
-  static uint8_t lastSecond = 99;                             // Static variable, means it's only defined once. This is our 'debounce' variable.
-
-  if (lastSecond != secondHand) {                             // Debounce to make sure we're not repeating an assignment.
-    lastSecond = secondHand;
-    switch(secondHand) {
-      case  0: thisdelay=50; palIndex=95; bgclr=140; bgbri=4; huerot=0; break;
-      case  5: targetPalette = OceanColors_p; thisdir=1; bgbri=0; huerot=1; break;
-      case 10: targetPalette = LavaColors_p; thisdelay=30; palIndex=0; bgclr=50; bgbri=8; huerot=0; break;
-      case 15: targetPalette = ForestColors_p; thisdelay=80; bgbri = 16; bgclr=96; palIndex=random8(); break;
-      case 20: palIndex=random8(); huerot=1; break;
-      case 25: break;
-    }
-  }
-
-} // ChangeMe()
 
 void confetti() 
 {
@@ -508,7 +478,7 @@ void fill_grad() {
   
 } // fill_grad()
 
-
+//// display the logo on boot
 void drawLogo(void) {
   display.clearDisplay();
 
@@ -517,9 +487,10 @@ void drawLogo(void) {
     (display.height() - LOGO_HEIGHT) / 2,
     logo_bmp, LOGO_WIDTH, LOGO_HEIGHT, 1);
   display.display();
-  delay(5000);
+  delay(1000);
 }
 
+//// update the display
 void updateDisplay(int mode) {
   int analog_reading = analogRead(BAT_PIN);
   float battery_voltage = mapf(analog_reading, 582, 845, 9, 13);
@@ -537,7 +508,7 @@ void updateDisplay(int mode) {
   display.display(); // actually display all of the above
 }
 
-
+// map float function 
 double mapf(double val, double in_min, double in_max, double out_min, double out_max) {
     return (val - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
