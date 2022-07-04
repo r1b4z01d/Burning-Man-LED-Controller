@@ -12,7 +12,7 @@ FASTLED_USING_NAMESPACE
 // Tent = 1
 // Bike = 2
 // Hootie Wing = 3
-// Hootie Front = 41218 
+// Hootie Front = 4
 // Hootie Side = 5
 #define DEVICE_TYPE 1     
 
@@ -37,6 +37,7 @@ uint8_t loc1;
 // Palette definitions
 CRGBPalette16 currentPalette = PartyColors_p;
 TBlendType    currentBlending = LINEARBLEND; 
+CRGBPalette16 targetPalette;
 
 // Define variables used by the sequences.
 uint8_t fadeval = 224;                                        // Trail behind the LED's. Lower => faster fade.
