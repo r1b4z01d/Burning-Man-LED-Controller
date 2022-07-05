@@ -22,8 +22,6 @@ CRGB clr2;
 CRGBPalette16 currentPalette = PartyColors_p;
 TBlendType    currentBlending = LINEARBLEND; 
 
-CRGB leds[NUM_LEDS];
-
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
 void matrix() {                                               // One line matrix

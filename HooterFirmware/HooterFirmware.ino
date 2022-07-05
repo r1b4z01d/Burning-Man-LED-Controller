@@ -3,10 +3,10 @@ FASTLED_USING_NAMESPACE
 
 // Change this to correspond to the correct device type
 // Current options include  tent, wing, side, front, bike
-#include "device_types/tent.h" // Set device type 
-
-#include "include/jsbutton.h"  // Button routine by Jeff Saltzman
+#include "device_types/tent.h" // Set device type
+ 
 #include "include/patterns.h"  // Led patterns
+#include "include/jsbutton.h"  // Button routine by Jeff Saltzman
 
 uint8_t gCurrentPatternNumber = 0; // Current mode/effect/pattern index
 // List of patterns to cycle through. Each is defined as a function in patterns.h
@@ -16,16 +16,21 @@ SimplePatternList gPatterns = { matrix, rainbowWithGlitter, dot_beat, blur, fill
 // Setup runs on bootup
 void setup() {
 
-  FastLED.addLeds<LED_TYPE,DATA_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  // Setup LED strip(s)
+  setupLEDStrips();  
   
-  // Setup button if there is one 
-  if ( BUTTON_PIN <=1 ){ setupButton(); }
+  // Setup button if configured 
+  if ( BUTTON_PIN >=1 ){ setupButton(); }
   
   // Setup the screen if configured
   if ( SCREEN == 1 ){ setupScreen(); }
   
-  // set master brightness control
-  FastLED.setBrightness(BRIGHTNESS);
+  // Setup brightness knob if configured
+  if ( BRIGHTNESS_PIN >= 1 ){
+    setBrightness(); 
+  }else {
+    FastLED.setBrightness(BRIGHTNESS);
+  }
 
 }
 
@@ -64,12 +69,12 @@ void readbutton() {                                           // Read the button
 
   if (b == 1) {                                               // Just a click event to advance to next pattern
     gCurrentPatternNumber = (gCurrentPatternNumber + 1) % ARRAY_SIZE(gPatterns);
-    // updateDisplay(gCurrentPatternNumber);
+    if ( SCREEN == 1 ){updateDisplay(gCurrentPatternNumber);}
   }
 
   if (b == 2) {                                               // A double-click event to reset to 0 pattern
     gCurrentPatternNumber = 0;
-    //updateDisplay(gCurrentPatternNumber);
+    if ( SCREEN == 1 ){updateDisplay(gCurrentPatternNumber);}
   }
 
 } // readbutton()
@@ -78,4 +83,10 @@ void nextPattern()
 {
   // add one to the current pattern number, and wrap around at the end
   gCurrentPatternNumber = (gCurrentPatternNumber + 1) % ARRAY_SIZE( gPatterns);
+}
+
+void setBrightness(){
+  int newBrightness = analogRead(BRIGHTNESS_PIN);
+  newBrightness = map(newBrightness, 0, 1023, 10, 200);
+  FastLED.setBrightness(newBrightness);
 }
