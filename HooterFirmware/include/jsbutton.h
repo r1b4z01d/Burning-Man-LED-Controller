@@ -2,9 +2,9 @@
  *
  * By Jeff Saltzman
  *
- * Modified by: Andrew Tuline
+ * Modified by: Bryan Ribas
  * 
- * Oct. 13, 2009
+ * July 4, 2022
  *
  * To keep a physical interface as simple as possible, this sketch demonstrates generating four output events from a single push-button.
  * 
@@ -38,7 +38,10 @@ boolean ignoreUp = false;   // whether to ignore the button release because the 
 boolean waitForUp = false;        // when held, whether to wait for the up event
 boolean holdEventPast = false;    // whether or not the hold event happened already
 
-
+void setupButton(){
+    pinMode(BUTTON_PIN, INPUT);
+    digitalWrite(BUTTON_PIN, HIGH );
+}
 
 uint8_t checkButton() {    
    uint8_t event = 0;

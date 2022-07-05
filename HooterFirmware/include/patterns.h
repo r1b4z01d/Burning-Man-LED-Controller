@@ -1,24 +1,29 @@
-// Initialize global variables for sequences.
-uint8_t    palIndex =  95;
+// matrix()
+// Initialize global variables for sequence
+int8_t    palIndex =  95;
 uint8_t    thissat = 255;
 int        thisdir =   0;
 uint8_t thisbright = 255;
-bool        huerot =   0;                                     // Does the hue rotate? 1 = yes
 uint8_t      bgclr =   0;
 uint8_t      bgbri =   0;
+
+// dot_beat()
+// Trail behind the LED's. Lower => faster fade.
+uint8_t fadeval = 224;  
 uint8_t bpm = 30;
-uint8_t fadeval = 224;                                        // Trail behind the LED's. Lower => faster fade.
-CRGB leds[NUM_LEDS];
-CRGB clr1;
-CRGB clr2;
+
+// blendwave()
 uint8_t speed;
 uint8_t loc1;
-
+CRGB clr1;
+CRGB clr2;
 
 // Palette definitions
 CRGBPalette16 currentPalette = PartyColors_p;
 TBlendType    currentBlending = LINEARBLEND; 
-CRGBPalette16 targetPalette;
+
+CRGB leds[NUM_LEDS];
+
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
 void matrix() {                                               // One line matrix
@@ -113,22 +118,6 @@ void fadein() {
 
 }// fadein()
 
-void ease() {
-
-  static uint8_t easeOutVal = 0;
-  static uint8_t easeInVal  = 0;
-  static uint8_t lerpVal    = 0;
-
-  easeOutVal = ease8InOutQuad(easeInVal);                     // Start with easeInVal at 0 and then go to 255 for the full easing.
-  easeInVal++;
-
-  lerpVal = lerp8by8(0, NUM_LEDS, easeOutVal);                // Map it to the number of LED's you have.
-
-  leds[lerpVal] = CRGB::Red;
-  fadeToBlackBy(leds, NUM_LEDS, 16);                          // 8 bit, 1 = slow fade, 255 = fast fade
-  
-} // ease()
-
 void beatwave() {
   
   uint8_t wave1 = beatsin8(9, 0, 255);                        // That's the same as beatsin8(9);
@@ -172,6 +161,18 @@ void blendwave() {
 
 void black(){
   fill_solid(leds, NUM_LEDS, CRGB::Black);                    
+  FastLED.show();
+}
+void red(){
+  fill_solid(leds, NUM_LEDS, CRGB::Red);                    
+  FastLED.show();
+}
+void green(){
+  fill_solid(leds, NUM_LEDS, CRGB::Green);                    
+  FastLED.show();
+}
+void blue(){
+  fill_solid(leds, NUM_LEDS, CRGB::Blue);                    
   FastLED.show();
 }
 

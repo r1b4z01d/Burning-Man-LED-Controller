@@ -1,56 +1,33 @@
 #include <FastLED.h>
-#define BUTTON_PIN 10  // button pin
-
-//#include "front.h" 
-//#include "wing.h" 
-//#include "side.h" 
-//#include "bike.h" 
-#include "tent.h" 
-
-#include "jsbutton.h" // button routine by Jeff Saltzman
-#include "patterns.h" // led patterns
-
 FASTLED_USING_NAMESPACE
 
+// Change this to correspond to the correct device type
+// Current options include  tent, wing, side, front, bike
+#include "device_types/tent.h" // Set device type 
+
+#include "include/jsbutton.h"  // Button routine by Jeff Saltzman
+#include "include/patterns.h"  // Led patterns
+
 uint8_t gCurrentPatternNumber = 0; // Current mode/effect/pattern index
+// List of patterns to cycle through. Each is defined as a function in patterns.h
+typedef void (*SimplePatternList[])();
+SimplePatternList gPatterns = { matrix, rainbowWithGlitter, dot_beat, blur, fill_grad, blendwave, beatwave, fadein, rainbow, confetti, sinelon, juggle, bpm2 };
 
-// Mode auto rotation settings
-#define ROTATE_MODES 0             // off:0 on:1
-#define ROTATE_MODE_SECONDS 60     // 
+// Setup runs on bootup
+void setup() {
 
-
-void setup() {                                                                
-  // tell FastLED about the LED strip configuration
-  FastLED.addLeds<LED_TYPE,3,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-
-  pinMode(BUTTON_PIN, INPUT);
-  digitalWrite(BUTTON_PIN, HIGH );
-
+  FastLED.addLeds<LED_TYPE,DATA_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  
+  // Setup button if there is one 
+  if ( BUTTON_PIN <=1 ){ setupButton(); }
+  
+  // Setup the screen if configured
+  if ( SCREEN == 1 ){ setupScreen(); }
+  
   // set master brightness control
   FastLED.setBrightness(BRIGHTNESS);
 
-  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
- // if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    //Serial.println(F("SSD1306 allocation failed"));
-  //}
-
-  // Clear the buffer
-  //display.clearDisplay();
-  //display.display();
-  
-  //display hootie logo
-  //drawLogo();
-
-  gCurrentPatternNumber = 0;
-  //updateDisplay(gCurrentPatternNumber);
-
 }
-
-
-// List of patterns to cycle through.  Each is defined as a separate function below.
-typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = { matrix, rainbowWithGlitter, fill_grad, blendwave, beatwave,fadein,rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm2 };
-String PatternsText[] = { "  Matrix", "  Glitter", "   Fill", " Blendwave", " Beatwave", "  Fade In", " Rainbow", " Confetti", "  Sinelon", "  Juggle", "   BPM" };
 
 void loop()
 {
@@ -59,25 +36,19 @@ void loop()
   readbutton();
   // send the 'leds' array out to the actual LED strip
   FastLED.show();  
+  
   // insert a delay to keep the framerate modest
-  FastLED.delay(1000/FRAMES_PER_SECOND); 
-
- EVERY_N_MILLISECONDS(100) {                                                 // FastLED based non-blocking FIXED delay.
-    uint8_t maxChanges = 24;
-    nblendPaletteTowardPalette(currentPalette, targetPalette, maxChanges);    // AWESOME palette blending capability.
+  if (FRAMES_PER_SECOND >= 1){
+    FastLED.delay(1000/FRAMES_PER_SECOND); 
   }
 
-  //enable buttonless mode
-  if(ROTATE_MODES == 1){
+  //enable mode rotation 
+  if(ROTATE_MODE_SECONDS >= 1){
     EVERY_N_SECONDS(ROTATE_MODE_SECONDS) {
       nextPattern();
       }
   }
-
-  EVERY_N_SECONDS(5) {                                                        // Change the target palette to a random one every 5 seconds.
-    uint8_t baseC = random8(255);                                             // Use the built-in random number generator as we are re-initializing the FastLED one.
-    targetPalette = CRGBPalette16(CHSV(baseC+random8(0,32), 255, random8(128, 255)), CHSV(baseC+random8(0,32), 255, random8(128, 255)), CHSV(baseC+random8(0,32), 192, random8(128, 255)), CHSV(baseC+random8(0,32), 255, random8(128, 255)));
-    }
+  
  // 
   // do some periodic updates
   EVERY_N_MILLISECONDS( 20 ) { 
@@ -107,5 +78,4 @@ void nextPattern()
 {
   // add one to the current pattern number, and wrap around at the end
   gCurrentPatternNumber = (gCurrentPatternNumber + 1) % ARRAY_SIZE( gPatterns);
-  
 }
