@@ -11,7 +11,7 @@ FASTLED_USING_NAMESPACE
 uint8_t gCurrentPatternNumber = 0; // Current mode/effect/pattern index
 // List of patterns to cycle through. Each is defined as a function in patterns.h
 typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = { matrix, rainbowWithGlitter, dot_beat, blur, fill_grad, blendwave, beatwave, fadein, rainbow, confetti, sinelon, juggle, bpm2 };
+SimplePatternList gPatterns = {rainbow, matrix , red_white_blue_blend, cloudy_blend, red_white_blue_blend,  black_white, purple_green, random_palette, every_other_ramdom, matrix, rainbowWithGlitter, dot_beat, blur, fill_grad, blendwave, beatwave, fadein, rainbow, confetti, sinelon, juggle, bpm2 };
 
 // Setup runs on bootup
 void setup() {
@@ -31,6 +31,10 @@ void setup() {
   }else {
     FastLED.setBrightness(BRIGHTNESS);
   }
+
+  
+    currentPalette = RainbowColors_p;
+    currentBlending = LINEARBLEND;
 
 }
 

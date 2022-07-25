@@ -22,7 +22,19 @@ CRGB clr2;
 CRGBPalette16 currentPalette = PartyColors_p;
 TBlendType    currentBlending = LINEARBLEND; 
 
+extern CRGBPalette16 myRedWhiteBluePalette;
+extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
+
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
+
+// Fireworks definitions
+#define NUM_SPARKS 61 // max number (could be NUM_LEDS / 2);
+float sparkPos[NUM_SPARKS];
+float sparkVel[NUM_SPARKS];
+float sparkCol[NUM_SPARKS];
+float flarePos;
+float gravity = -.004; // m/s/s
+
 
 void matrix() {                                               // One line matrix
   
@@ -173,6 +185,18 @@ void blue(){
   fill_solid(leds, NUM_LEDS, CRGB::Blue);                    
   FastLED.show();
 }
+void purple(){
+  fill_solid(leds, NUM_LEDS, CRGB::Purple);                    
+  FastLED.show();
+}
+void pink(){
+  fill_solid(leds, NUM_LEDS, CRGB::Pink);                    
+  FastLED.show();
+}
+void white(){
+  fill_solid(leds, NUM_LEDS, CRGB::White);                    
+  FastLED.show();
+}
 
 void blur() {
 
@@ -206,3 +230,338 @@ void fill_grad() {
   }
   
 } // fill_grad()
+
+void every_other_ramdom(){
+
+  for( int i = 0; i <  NUM_LEDS; i++) {
+      if (i % 2 == 0){
+        leds[i] = CRGB::Black; 
+         FastLED.show();
+      }
+      else{
+      leds[i] = ColorFromPalette(currentPalette, random16(2000), thisbright, currentBlending); 
+       FastLED.show();   
+      }
+    } 
+    for( int i = NUM_LEDS - 1; i >= 0; i--) {
+           if (i % 2 == 0){
+        leds[i] = ColorFromPalette(currentPalette, random16(2000), thisbright, currentBlending);
+         FastLED.show();
+      }
+      else{
+      leds[i] = CRGB::Black; 
+       FastLED.show();   
+      }
+    } 
+    for( int i = 1; i <  NUM_LEDS; i++) {
+      if (i % 2 == 0){
+        leds[i] = CRGB::Black; 
+         FastLED.show();
+      }
+      else{
+      leds[i] = ColorFromPalette(currentPalette, random16(2000), thisbright, currentBlending);
+       FastLED.show();   
+      }
+    } 
+    for( int i = NUM_LEDS - 2; i >= 0; i--) {
+           if (i % 2 == 0){
+        leds[i] = ColorFromPalette(currentPalette, random16(2000), thisbright, currentBlending); 
+         FastLED.show();
+      }
+      else{
+      leds[i] = CRGB::Black; 
+       FastLED.show();   
+      }
+    } 
+    
+}
+
+/*
+ * Send up a flare
+ * 
+ */
+void flare() {
+  
+  flarePos = 0;
+  float flareVel = float(random16(NUM_LEDS/2, NUM_LEDS)) / 100; // trial and error to get reasonable range
+  float brightness = 1;
+
+  // initialize launch sparks
+  for (int i = 0; i < 5; i++) { 
+    sparkPos[i] = 0;
+    sparkVel[i] = (float(random8()) / 255) * (flareVel / 5);
+    // random around 20% of flare velocity
+    sparkCol[i] = sparkVel[i] * 1000;
+    sparkCol[i] = constrain(sparkCol[i], 0, 255);
+  } 
+  // launch 
+  FastLED.clear();
+  while (flareVel >= -.2) {
+    // sparks
+    for (int i = 0; i < 5; i++) {
+      sparkPos[i] += sparkVel[i];
+      sparkPos[i] = constrain(sparkPos[i], 0, 120);
+      sparkVel[i] += gravity;
+      sparkCol[i] += -.8;
+      sparkCol[i] = constrain(sparkCol[i], 0, 255);
+      leds[int(sparkPos[i])] = HeatColor(sparkCol[i]);
+      leds[int(sparkPos[i])] %= 50; // reduce brightness to 50/255
+    }
+    
+    // flare
+    leds[int(flarePos)] = CHSV(0, 0, int(brightness * 255));
+    FastLED.show();
+    FastLED.clear();
+    flarePos += flareVel;
+    flareVel += gravity;
+    brightness *= .985;
+  }
+}
+
+
+
+
+/*
+ * Explode!
+ * 
+ * Explosion happens where the flare ended.
+ * Size is proportional to the height.
+ */
+void explodeLoop() {
+  int nSparks = flarePos / 2; // works out to look about right
+  
+  // initialize sparks
+  for (int i = 0; i < nSparks; i++) { 
+    sparkPos[i] = flarePos; sparkVel[i] = (float(random16(0, 20000)) / 10000.0) - 1.0; // from -1 to 1 
+    sparkCol[i] = abs(sparkVel[i]) * 500; // set colors before scaling velocity to keep them bright 
+    sparkCol[i] = constrain(sparkCol[i], 0, 255); 
+    sparkVel[i] *= flarePos / NUM_LEDS; // proportional to height 
+  } 
+  sparkCol[0] = 255; // this will be our known spark 
+  float dying_gravity = gravity; 
+  float c1 = 120; 
+  float c2 = 50; 
+  while(sparkCol[0] > c2/128) { // as long as our known spark is lit, work with all the sparks
+    FastLED.clear();
+    for (int i = 0; i < nSparks; i++) { 
+      sparkPos[i] += sparkVel[i]; 
+      sparkPos[i] = constrain(sparkPos[i], 0, NUM_LEDS); 
+      sparkVel[i] += dying_gravity; 
+      sparkCol[i] *= .99; 
+      sparkCol[i] = constrain(sparkCol[i], 0, 255); // red cross dissolve 
+      if(sparkCol[i] > c1) { // fade white to yellow
+        leds[int(sparkPos[i])] = CRGB(255, 255, (255 * (sparkCol[i] - c1)) / (255 - c1));
+      }
+      else if (sparkCol[i] < c2) { // fade from red to black
+        leds[int(sparkPos[i])] = CRGB((255 * sparkCol[i]) / c2, 0, 0);
+      }
+      else { // fade from yellow to red
+        leds[int(sparkPos[i])] = CRGB(255, (255 * (sparkCol[i] - c2)) / (c1 - c2), 0);
+      }
+    }
+    dying_gravity *= .995; // as sparks burn out they fall slower
+    FastLED.show();
+  }
+  FastLED.clear();
+  FastLED.show();
+}
+
+/*
+ * Fireworks Loop
+ */
+void fireworks() {  
+  // send up flare
+  flare();
+  
+  // explode
+  explodeLoop();
+
+  // wait before sending up another
+  delay(random16(500, 2000));
+}
+
+void FillLEDsFromPaletteColors( uint8_t colorIndex)
+{
+    uint8_t brightness = 255;
+
+    for( int i = 0; i < NUM_LEDS; i++) {
+        leds[i] = ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
+        colorIndex += 3;
+    }
+}
+
+// This function fills the palette with totally random colors.
+void SetupTotallyRandomPalette()
+{
+    for( int i = 0; i < 16; i++) {
+        currentPalette[i] = CHSV( random8(), 255, random8());
+    }
+}
+
+// This function sets up a palette of black and white stripes,
+// using code.  Since the palette is effectively an array of
+// sixteen CRGB colors, the various fill_* functions can be used
+// to set them up.
+void SetupBlackAndWhiteStripedPalette()
+{
+    // 'black out' all 16 palette entries...
+    fill_solid( currentPalette, 16, CRGB::Black);
+    // and set every fourth one to white.
+    currentPalette[0] = CRGB::White;
+    currentPalette[4] = CRGB::White;
+    currentPalette[8] = CRGB::White;
+    currentPalette[12] = CRGB::White;
+
+}
+
+// This function sets up a palette of purple and green stripes.
+void SetupPurpleAndGreenPalette()
+{
+    CRGB purple = CHSV( HUE_PURPLE, 255, 255);
+    CRGB green  = CHSV( HUE_GREEN, 255, 255);
+    CRGB black  = CRGB::Black;
+
+    currentPalette = CRGBPalette16(
+                                   green,  green,  black,  black,
+                                   purple, purple, black,  black,
+                                   green,  green,  black,  black,
+                                   purple, purple, black,  black );
+}
+
+
+// This example shows how to set up a static color palette
+// which is stored in PROGMEM (flash), which is almost always more
+// plentiful than RAM.  A static PROGMEM palette like this
+// takes up 64 bytes of flash.
+const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM =
+{
+    CRGB::Red,
+    CRGB::Gray, // 'white' is too bright compared to red and blue
+    CRGB::Blue,
+    CRGB::Black,
+
+    CRGB::Red,
+    CRGB::Gray,
+    CRGB::Blue,
+    CRGB::Black,
+
+    CRGB::Red,
+    CRGB::Red,
+    CRGB::Gray,
+    CRGB::Gray,
+    CRGB::Blue,
+    CRGB::Blue,
+    CRGB::Black,
+    CRGB::Black
+};
+void red_white_blue()
+{
+    currentPalette = myRedWhiteBluePalette_p;
+    currentBlending = NOBLEND;
+
+    static uint8_t startIndex = 0;
+    startIndex = startIndex + 20; /* motion speed */
+
+    FillLEDsFromPaletteColors(startIndex);
+
+    FastLED.show();
+    FastLED.delay(1000/FRAMES_PER_SECOND);
+}
+
+void red_white_blue_blend()
+{
+    currentPalette = myRedWhiteBluePalette_p;
+    currentBlending = LINEARBLEND;
+
+    static uint8_t startIndex = 0;
+    startIndex = startIndex + 20; /* motion speed */
+
+    FillLEDsFromPaletteColors(startIndex);
+
+    FastLED.show();
+    FastLED.delay(5000/FRAMES_PER_SECOND);
+}
+
+void cloudy_blend()
+{
+    currentPalette = CloudColors_p;
+    currentBlending = LINEARBLEND;
+
+    static uint8_t startIndex = 0;
+    startIndex = startIndex + 1; /* motion speed */
+
+    FillLEDsFromPaletteColors( startIndex);
+
+    FastLED.show();
+    FastLED.delay(1000/FRAMES_PER_SECOND);
+}
+
+void black_white()
+{
+    SetupBlackAndWhiteStripedPalette();
+    currentBlending = NOBLEND;
+
+    static uint8_t startIndex = 0;
+    startIndex = startIndex + 1; /* motion speed */
+
+    FillLEDsFromPaletteColors( startIndex);
+
+    FastLED.show();
+    FastLED.delay(1000/FRAMES_PER_SECOND);
+}
+
+void black_white_blend()
+{
+    SetupBlackAndWhiteStripedPalette();
+    currentBlending = LINEARBLEND;
+
+    static uint8_t startIndex = 0;
+    startIndex = startIndex + 1; /* motion speed */
+
+    FillLEDsFromPaletteColors( startIndex);
+
+    FastLED.show();
+    FastLED.delay(1000/FRAMES_PER_SECOND);
+}
+
+void purple_green()
+{
+    SetupPurpleAndGreenPalette();
+    currentBlending = NOBLEND;
+
+    static uint8_t startIndex = 0;
+    startIndex = startIndex + 1; /* motion speed */
+
+    FillLEDsFromPaletteColors( startIndex);
+
+    FastLED.show();
+    FastLED.delay(1000/FRAMES_PER_SECOND);
+}
+
+void purple_green_blur()
+{
+    SetupPurpleAndGreenPalette();
+    currentBlending = LINEARBLEND;
+
+    static uint8_t startIndex = 0;
+    startIndex = startIndex + 1; /* motion speed */
+
+    FillLEDsFromPaletteColors( startIndex);
+
+    FastLED.show();
+    FastLED.delay(1000/FRAMES_PER_SECOND);
+}
+
+void random_palette()
+{
+    SetupTotallyRandomPalette();
+    currentBlending = LINEARBLEND;
+
+    static uint8_t startIndex = 0;
+    startIndex = startIndex + 1; /* motion speed */
+
+    FillLEDsFromPaletteColors( startIndex);
+
+    FastLED.show();
+    FastLED.delay(1000/FRAMES_PER_SECOND);
+}
