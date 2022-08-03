@@ -1,5 +1,8 @@
 #include <FastLED.h>
 FASTLED_USING_NAMESPACE
+#include <Wire.h>
+
+# define I2C_SLAVE_ADDRESS 11
 
 // Change this to correspond to the correct device type
 // Current options include  tent, wing, side, front, bike
@@ -11,7 +14,7 @@ FASTLED_USING_NAMESPACE
 uint8_t gCurrentPatternNumber = 0; // Current mode/effect/pattern index
 // List of patterns to cycle through. Each is defined as a function in patterns.h
 typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = {rainbow, matrix , red_white_blue_blend, cloudy_blend, red_white_blue_blend,  black_white, purple_green, random_palette, every_other_ramdom, matrix, rainbowWithGlitter, dot_beat, blur, fill_grad, blendwave, beatwave, fadein, rainbow, confetti, sinelon, juggle, bpm2 };
+SimplePatternList gPatterns = { matrix, every_other_ramdom,  random_palette, purple_green, black_white, matrix, rainbowWithGlitter, dot_beat, blur, fill_grad, blendwave, beatwave, fadein, rainbow, confetti,  juggle, bpm2 };
 
 // Setup runs on bootup
 void setup() {
@@ -35,6 +38,14 @@ void setup() {
   
     currentPalette = RainbowColors_p;
     currentBlending = LINEARBLEND;
+
+
+
+  Wire.begin(I2C_SLAVE_ADDRESS);
+  delay(1000);               
+  Wire.onRequest(requestMode);
+  Wire.onReceive(setMode);
+  
 
 }
 
@@ -93,4 +104,18 @@ void setBrightness(){
   int newBrightness = analogRead(BRIGHTNESS_PIN);
   newBrightness = map(newBrightness, 0, 1023, 10, 200);
   FastLED.setBrightness(newBrightness);
+}
+
+
+
+void requestMode()
+{
+  Wire.write("jk");
+}
+
+void setMode(int numBytes)
+{  
+  int n = Wire.read();
+  Serial.print(numBytes);
+  Serial.println(n);
 }
