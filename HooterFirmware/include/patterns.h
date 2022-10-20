@@ -546,9 +546,14 @@ void random_palette()
     FastLED.delay(1000/FRAMES_PER_SECOND);
 }
 
+void all_off(){
+  FastLED.clear();  // clear all pixel data
+  FastLED.show();
+}
+
 void matrix() {                                               // One line matrix
   SetupTotallyRandomPalette();
-  if (random8(90) > 80) {
+  if (random8(90) > 80){
     if (thisdir == 0)
       leds[0] = ColorFromPalette(currentPalette, palIndex, thisbright, currentBlending); 
     else
@@ -560,7 +565,7 @@ void matrix() {                                               // One line matrix
       leds[NUM_LEDS-1] = CHSV(bgclr, thissat, bgbri);
   }
   if (thisdir == 0) {
-    for (int i = NUM_LEDS-1; i >0 ; i-- ) leds[i] = leds[i-1];
+    for (int i = NUM_LEDS-1; i >0  && gCurrentPatternNumber ==1; i-- ) leds[i] = leds[i-1];
   } else {
     for (int i = 0; i < NUM_LEDS-1 ; i++ ) leds[i] = leds[i+1];
   }

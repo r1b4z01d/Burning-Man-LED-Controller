@@ -1,24 +1,24 @@
 #include <FastLED.h>
 FASTLED_USING_NAMESPACE
-#include <Wire.h>
-
-# define I2C_SLAVE_ADDRESS 11
 
 // Change this to correspond to the correct device type
 // Current options include  tent, wing, side, front, bike
-#include "device_types/tent.h" // Set device type
- 
+#include "device_types/audi.h" // Set device type
+
+uint8_t gCurrentPatternNumber = 0; // Current mode/effect/pattern index 
+
+
 #include "include/patterns.h"  // Led patterns
 #include "include/jsbutton.h"  // Button routine by Jeff Saltzman
+#include "include/microphone.h"// Microphone input and pattern
 
-uint8_t gCurrentPatternNumber = 0; // Current mode/effect/pattern index
 // List of patterns to cycle through. Each is defined as a function in patterns.h
 typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = { matrix, every_other_ramdom,  random_palette, purple_green, black_white, matrix, rainbowWithGlitter, dot_beat, blur, fill_grad, blendwave, beatwave, fadein, rainbow, confetti,  juggle, bpm2 };
+SimplePatternList gPatterns = { all_off, music, matrix, purple_green, black_white, rainbowWithGlitter, dot_beat, blur, fill_grad, blendwave, beatwave, fadein, confetti,  juggle, bpm2 };
 
 // Setup runs on bootup
 void setup() {
-
+  Serial.begin(9600);
   // Setup LED strip(s)
   setupLEDStrips();  
   
@@ -34,18 +34,8 @@ void setup() {
   }else {
     FastLED.setBrightness(BRIGHTNESS);
   }
-
-  
     currentPalette = RainbowColors_p;
-    currentBlending = LINEARBLEND;
-
-
-
-  Wire.begin(I2C_SLAVE_ADDRESS);
-  delay(1000);               
-  Wire.onRequest(requestMode);
-  Wire.onReceive(setMode);
-  
+    currentBlending = LINEARBLEND; 
 
 }
 
@@ -108,14 +98,4 @@ void setBrightness(){
 
 
 
-void requestMode()
-{
-  Wire.write("jk");
-}
 
-void setMode(int numBytes)
-{  
-  int n = Wire.read();
-  Serial.print(numBytes);
-  Serial.println(n);
-}
