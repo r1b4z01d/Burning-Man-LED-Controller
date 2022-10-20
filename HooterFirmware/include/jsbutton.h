@@ -28,7 +28,9 @@ int holdTime = 1000;        // ms hold period: how long to wait for press+hold e
 
 // Button variables
 boolean buttonVal = HIGH;   // value read from button
+boolean button2Val = HIGH;   // value read from button
 boolean buttonLast = HIGH;  // buffered value of the button's previous state
+boolean button2Last = HIGH;  // buffered value of the button's previous state
 boolean DCwaiting = false;  // whether we're waiting for a double click (down)
 boolean DConUp = false;     // whether to register a double click on next release, or whether to wait and click
 boolean singleOK = true;    // whether it's OK to do a single click
@@ -43,10 +45,12 @@ void setupButton(){
     digitalWrite(BUTTON_PIN, HIGH );
 }
 
-uint8_t checkButton() {    
+uint8_t checkButtons() {    
    uint8_t event = 0;
    buttonVal = digitalRead(BUTTON_PIN);
-   // Button pressed down
+   button2Val = digitalRead(BUTTON2_PIN);
+
+   // Button 1 pressed down
    if (buttonVal == LOW && buttonLast == HIGH && (millis() - upTime) > debounce)
    {
        downTime = millis();
@@ -59,7 +63,7 @@ uint8_t checkButton() {
        else  DConUp = false;
        DCwaiting = false;
    }
-   // Button released
+   // Button 1 released
    else if (buttonVal == HIGH && buttonLast == LOW && (millis() - downTime) > debounce)
    {        
        if (not ignoreUp)
@@ -95,6 +99,60 @@ uint8_t checkButton() {
            holdEventPast = true;
        }
    }
+    
+
+    // Button 2 pressed down
+   if (button2Val == LOW && button2Last == HIGH && (millis() - upTime) > debounce)
+   {
+       downTime = millis();
+       ignoreUp = false;
+       waitForUp = false;
+       singleOK = true;
+       holdEventPast = false;
+
+       if ((millis()-upTime) < DCgap && DConUp == false && DCwaiting == true)  DConUp = true;
+       else  DConUp = false;
+       DCwaiting = false;
+   }
+   // Button 2 released
+   else if (button2Val == HIGH && button2Last == LOW && (millis() - downTime) > debounce)
+   {        
+       if (not ignoreUp)
+       {
+           upTime = millis();
+           if (DConUp == false) DCwaiting = true;
+           else
+           {
+               event = 5;
+               DConUp = false;
+               DCwaiting = false;
+               singleOK = false;
+           }
+       }
+   }
+   // Test for normal click event: DCgap expired
+   if ( button2Val == HIGH && (millis()-upTime) >= DCgap && DCwaiting == true && DConUp == false && singleOK == true && event != 2)
+   {
+       event = 4;
+       DCwaiting = false;
+   }
+   // Test for hold
+   if (button2Val == LOW && (millis() - downTime) >= holdTime) {
+       // Trigger "normal" hold
+       if (not holdEventPast)
+       {
+           event = 6;
+           waitForUp = true;
+           ignoreUp = true;
+           DConUp = false;
+           DCwaiting = false;
+           //downTime = millis();
+           holdEventPast = true;
+       }
+   }
+   
    buttonLast = buttonVal;
+   button2Last = button2Val;
+   
    return event;
 } // checkButton()

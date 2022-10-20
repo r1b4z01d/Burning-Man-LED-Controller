@@ -70,7 +70,7 @@ void loop()
 
 void readbutton() {                                           // Read the button and increase the mode
 
-  uint8_t b = checkButton();
+  uint8_t b = checkButtons();
 
   if (b == 1) {                                               // Just a click event to advance to next pattern
     gCurrentPatternNumber = (gCurrentPatternNumber + 1) % ARRAY_SIZE(gPatterns);
@@ -81,6 +81,17 @@ void readbutton() {                                           // Read the button
     gCurrentPatternNumber = 0;
     if ( SCREEN == 1 ){updateDisplay(gCurrentPatternNumber);}
   }
+  
+  if (b == 4) {                                               // Just a click event to advance to next pattern
+    gCurrentPatternNumber = (gCurrentPatternNumber + 1) % ARRAY_SIZE(gPatterns);
+    if ( SCREEN == 1 ){updateDisplay(gCurrentPatternNumber);}
+  }
+
+  if (b == 5) {                                               // A double-click event to reset to 0 pattern
+    gCurrentPatternNumber = 0;
+    if ( SCREEN == 1 ){updateDisplay(gCurrentPatternNumber);}
+  }
+  
 
 } // readbutton()
 
