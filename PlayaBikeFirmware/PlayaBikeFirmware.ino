@@ -1,24 +1,22 @@
 #include <FastLED.h>
 #include "EEPROM.h"
-#define buttonPin 22                                           // input pin to use as a digital input
+#define buttonPin 10                                           // input pin to use as a digital input
 #include "jsbutton.h"                                         // Nice button routine by Jeff Saltzman
 
 FASTLED_USING_NAMESPACE
 
 uint8_t ledMode = 0;
-uint8_t maxMode = 6;
-
-int eepaddress = 0;                                           // Store the starting mode in EEPROM address 0.
+uint8_t maxMode = 10;
 
 // Use qsuba for smooth pixel colouring and qsubd for non-smooth pixel colouring
 #define qsubd(x, b)  ((x>b)?b:0)                              // Digital unsigned subtraction macro. if result <0, then => 0. Otherwise, take on fixed value.
 #define qsuba(x, b)  ((x>b)?x-b:0)                            // Analog Unsigned subtraction macro. if result <0, then => 0
 
 #define DATA_PIN    5
-#define potPin   A9
+#define potPin   A0
 #define LED_TYPE    WS2812
 #define COLOR_ORDER GRB
-#define NUM_LEDS    93
+#define NUM_LEDS    269
 CRGB leds[NUM_LEDS];
 CRGB clr1;
 CRGB clr2;
@@ -34,10 +32,9 @@ unsigned int dimmer = 1;
 
 uint8_t ledstart;                                             // Starting location of a flash
 uint8_t ledlen;                                               // Length of a flash
-//uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 
-#define BRIGHTNESS       100
-#define FRAMES_PER_SECOND  120
+#define BRIGHTNESS       90
+#define FRAMES_PER_SECOND  220
 
 // Palette definitions
 CRGBPalette16 currentPalette = PartyColors_p;
@@ -61,7 +58,7 @@ uint8_t bpm = 30;
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 
 void setup() {
-  delay(3000); // 3 second delay for recovery
+  delay(1000); // 1 second delay for recovery
     Serial.begin(115200);                                        // Initialize serial port for debugging.
   delay(1000);                                                // Soft startup to ease the flow of electrons.
 
@@ -69,30 +66,28 @@ void setup() {
   FastLED.addLeds<LED_TYPE,5,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.addLeds<LED_TYPE,6,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.addLeds<LED_TYPE,7,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-  FastLED.addLeds<LED_TYPE,8,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE,8,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);//trex back
+  FastLED.addLeds<LED_TYPE,9,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);//trex left rear
 
   pinMode(buttonPin, INPUT);                                  // Set button input pin
-digitalWrite(buttonPin, HIGH );
+  digitalWrite(buttonPin, HIGH );
 
   // set master brightness control
   FastLED.setBrightness(BRIGHTNESS);
 
-gCurrentPatternNumber = EEPROM.read(eepaddress);
-
-   if (gCurrentPatternNumber > maxMode) gCurrentPatternNumber = 0; // A safety in case the EEPROM has an illegal value.
+gCurrentPatternNumber = 0;
    
 }
 
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = {  ChangeMe, blur,fill_grad, blendwave, beatwave,fadein,dot_beat,rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm2 };
+SimplePatternList gPatterns = {  matrix, fill_grad, blendwave, beatwave,fadein,rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm2 };
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
 void setBrightness(){
   int val = analogRead(potPin);
   val = map(val, 0, 1023, 10, 200);
-  analogWrite(9, val);
   FastLED.setBrightness(val);
   Serial.println(val);
 
@@ -120,17 +115,6 @@ void loop()
     targetPalette = CRGBPalette16(CHSV(baseC+random8(0,32), 255, random8(128, 255)), CHSV(baseC+random8(0,32), 255, random8(128, 255)), CHSV(baseC+random8(0,32), 192, random8(128, 255)), CHSV(baseC+random8(0,32), 255, random8(128, 255)));
   }
 
-if(gCurrentPatternNumber==0){
-   ChangeMe();
-
-  EVERY_N_MILLISECONDS(thisdelay) {
-    matrix();
-  }
-  
-  FastLED.show();
-  
-  }
-
   // do some periodic updates
   EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
   //EVERY_N_SECONDS( 10 ) { nextPattern(); } // change patterns periodically
@@ -151,12 +135,6 @@ void readbutton() {                                           // Read the button
   if (b == 2) {                                               // A double-click event to reset to 0 pattern
     gCurrentPatternNumber = 0;
     Serial.println(gCurrentPatternNumber);
-  }
-
-  if (b == 3) {                                               // A hold event to write current pattern to EEPROM
-    EEPROM.write(eepaddress,gCurrentPatternNumber);
-    Serial.print("Writing: ");
-    Serial.println(gCurrentPatternNumber);    
   }
 
 } // readbutton()
